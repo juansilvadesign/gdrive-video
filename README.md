@@ -281,7 +281,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ### 🎉 Thank You for Using GDrive Video Downloader!
 
-*Made with 💜 by **Juan Pablo***
+*Made with 💜 by **Juan Silva***
 
 **⭐ If you found this project helpful, please consider giving it a star!**
 
