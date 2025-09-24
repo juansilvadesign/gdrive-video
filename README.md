@@ -1,17 +1,18 @@
 <div align="center">
+  <img src="images/logo.png" alt="GDrive Video Logo" width="128" height="128">
 
-# 📥 GDrive Video 💾
+  # 📥 GDrive Video 💾
 
-[![Python](https://img.shields.io/badge/Python-3.7%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Requests](https://img.shields.io/badge/Requests-HTTP%20Library-green?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/requests/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Google Drive](https://img.shields.io/badge/Google%20Drive-Compatible-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com)
+  [![Python](https://img.shields.io/badge/Python-3.7%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+  [![Requests](https://img.shields.io/badge/Requests-HTTP%20Library-green?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/requests/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  [![Google Drive](https://img.shields.io/badge/Google%20Drive-Compatible-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com)
 
-![GitHub stars](https://img.shields.io/github/stars/juansilvadesign/gdrive-video?style=social)
-![GitHub forks](https://img.shields.io/github/forks/juansilvadesign/gdrive-video?style=social)
-![GitHub issues](https://img.shields.io/github/issues/juansilvadesign/gdrive-video?style=social)
+  ![GitHub stars](https://img.shields.io/github/stars/juansilvadesign/gdrive-video?style=social)
+  ![GitHub forks](https://img.shields.io/github/forks/juansilvadesign/gdrive-video?style=social)
+  ![GitHub issues](https://img.shields.io/github/issues/juansilvadesign/gdrive-video?style=social)
 
-*A powerful Python tool to download videos from Google Drive, even view-only files!* 🎯
+  *A powerful Python tool to download videos from Google Drive, even view-only files!* 🎯
 
 </div>
 
