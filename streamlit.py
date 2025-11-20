@@ -3,6 +3,8 @@ import requests
 from urllib.parse import unquote, urlparse
 import re
 import os
+import shutil
+import zipfile
 from io import BytesIO
 
 # Page configuration
@@ -125,6 +127,27 @@ def sanitize_filename(filename: str) -> str:
     filename = "".join(char for char in filename if ord(char) >= 32)
     return filename.strip()
 
+@st.cache_data
+def create_extension_zip():
+    """Creates a zip file of the extension folder for download."""
+    extension_dir = os.path.join(os.path.dirname(__file__), 'extension')
+    
+    if not os.path.exists(extension_dir):
+        return None
+    
+    # Create zip in memory
+    zip_buffer = BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for root, dirs, files in os.walk(extension_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, os.path.dirname(extension_dir))
+                zip_file.write(file_path, arcname)
+    
+    zip_buffer.seek(0)
+    return zip_buffer.getvalue()
+
 # Hero Section
 st.markdown("""
     <h1 style='text-align: center; color: #6f42c1; margin-bottom: 0.5rem;'>
@@ -162,7 +185,7 @@ with col1:
         label_visibility="collapsed"
     )
 with col2:
-    test_button = st.button("🔍 Test", use_container_width=True, type="primary")
+    test_button = st.button("📥 Download Video", use_container_width=True, type="primary")
 
 # Test and download logic
 if test_button and video_input:
@@ -246,40 +269,53 @@ Works on Chrome, Edge, Brave, and other Chromium-based browsers.
 """)
 
 col1, col2, col3 = st.columns(3)
+
+# Get extension zip
+extension_zip = create_extension_zip()
+
 with col1:
-    st.markdown("""
-        <a href="https://chrome.google.com/webstore/search/gdrive%20video" target="_blank">
-            <button style='width: 100%; padding: 0.75rem; background-color: #4285F4; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: bold;'>
-                + Add to Chrome
+    if extension_zip:
+        st.download_button(
+            label="⬇️ Download Extension",
+            data=extension_zip,
+            file_name="gdrive-video-extension.zip",
+            mime="application/zip",
+            use_container_width=True,
+            help="Download the extension folder as ZIP"
+        )
+    else:
+        st.markdown("""
+            <button style='width: 100%; padding: 0.75rem; background-color: #666; color: white; border: none; border-radius: 0.25rem; cursor: not-allowed;'>
+                ⬇️ Download Extension
             </button>
-        </a>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown("""
-        <a href="https://microsoftedge.microsoft.com/addons/search/gdrive%20video" target="_blank">
-            <button style='width: 100%; padding: 0.75rem; background-color: #0078D4; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: bold;'>
-                + Add to Edge
-            </button>
-        </a>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown("""
-        <a href="https://github.com/juansilvadesign/gdrive-video/tree/main/extension" target="_blank">
-            <button style='width: 100%; padding: 0.75rem; background-color: #333; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: bold;'>
-                📦 Load from GitHub
-            </button>
-        </a>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+        st.caption("❌ Extension folder not found")
 
 st.markdown("""
 #### 📖 How to Install Manually:
-1. Clone or download the repository from [GitHub](https://github.com/juansilvadesign/gdrive-video)
-2. Open `chrome://extensions/` (or `edge://extensions/`)
-3. Enable **Developer mode** (top-right corner)
-4. Click **Load unpacked** and select the `extension` folder
-5. Done! The extension will appear in your toolbar
+
+**Option 1: Using Downloaded ZIP (Easiest)**
+1. Click "⬇️ Download Extension" button above
+2. Extract the ZIP file to a folder
+3. Open `chrome://extensions/` (or `edge://extensions/`)
+4. Enable **Developer mode** (toggle in top-right corner)
+5. Click **Load unpacked** 
+6. Select the extracted `extension` folder
+7. Done! The extension appears in your toolbar
+
+**Option 2: Clone from GitHub**
+1. Visit [GitHub Repository](https://github.com/juansilvadesign/gdrive-video)
+2. Clone or download the repo
+3. Open `chrome://extensions/`
+4. Enable **Developer mode**
+5. Click **Load unpacked** and select the `extension` folder
+6. Done!
+
+**Using the Extension:**
+- Navigate to any Google Drive video
+- Click the extension icon in your toolbar
+- Click **ON** to enable URL capturing
+- Watch the video load, then click download!
 """)
 
 # Features Section
