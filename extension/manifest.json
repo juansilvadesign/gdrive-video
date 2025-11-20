@@ -4,13 +4,13 @@
   "version": "1.0",
   "description": "Download Google Drive privatly shared videos.",
   "icons": {
-    "16": "assets/icon.png",
-    "32": "assets/icon.png",
-    "48": "assets/icon.png",
-    "64": "assets/icon.png",
-    "128": "assets/icon.png",
-    "256": "assets/icon.png",
-    "512": "assets/icon.png"
+    "16": "assets/logo.png",
+    "32": "assets/logo.png",
+    "48": "assets/logo.png",
+    "64": "assets/logo.png",
+    "128": "assets/logo.png",
+    "256": "assets/logo.png",
+    "512": "assets/logo.png"
   },
   "permissions": [
     "debugger",
@@ -23,7 +23,7 @@
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_icon": "assets/icon.png"
+    "default_icon": "assets/logo.png"
   },
   "background": {
     "service_worker": "background/background.js"
