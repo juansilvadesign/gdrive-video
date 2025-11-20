@@ -220,8 +220,148 @@ python main.py 1BxBiUQN123abc456def789 -o "important_video.mp4" -c 4096 -v
 - [ ] 🧪 **Unit Tests**: Comprehensive test coverage
 - [ ] 📚 **Documentation**: API docs with `Sphinx`
 
+---
 
-## 📄 License
+## 🌐 Browser Extension
+
+### 📌 Overview
+
+In addition to the Python CLI tool, **GDrive Video** also provides a **Chromium-based browser extension** that lets you download private/shared videos directly from Google Drive through your browser interface.
+
+The extension hooks into Chromium's debugging protocol to monitor network requests made by Google Drive's video player. When you navigate to a Google Drive video preview modal/page, the extension captures the media streaming data, extracts the highest-quality progressive download URL, and presents it in a simple popup for one-click download.
+
+### ✨ Extension Features
+
+<table>
+<tr>
+<td>
+
+#### 🎬 **Download Any Video**
+- Download any video shared with you
+- Works even if download option is disabled
+- Access restricted content
+
+</td>
+<td>
+
+#### ⚡ **One-Click Download**
+- Automatic video detection
+- Simple popup interface
+- Direct download to your device
+
+</td>
+</tr>
+<tr>
+<td>
+
+#### 🔄 **Auto-Display**
+- Automatically opens popup when videos are detected
+- Seamless user experience
+- Real-time stream capturing
+
+</td>
+<td>
+
+#### 🎛️ **Easy Control**
+- Toggle extension on/off per browser tab
+- Quick retry button
+- No extra setup needed
+
+</td>
+</tr>
+</table>
+
+### 🛠️ Extension Installation
+
+#### Step 1: Get the Extension
+```powershell
+# Option A: Clone the repository (already done if you cloned gdrive-video)
+git clone https://github.com/juansilvadesign/gdrive-video.git
+cd gdrive-video/extension
+
+# Option B: Or directly clone the extension folder from the project
+```
+
+#### Step 2: Load in Chromium Browser
+
+1. Open your chromium-based browser (Chrome, Edge, Brave, etc.)
+2. Navigate to your extensions page:
+   - **Chrome/Edge**: `chrome://extensions/` or `edge://extensions/`
+   - **Brave**: `brave://extensions/`
+3. Enable **Developer mode** (toggle in top-right corner)
+4. Click **Load unpacked** (or **Load extension**)
+5. Select the `extension` folder from your cloned repository
+6. The extension icon will appear in your toolbar
+
+### 🎬 How to Use the Extension
+
+#### **Video Page**
+
+1. Navigate to any Google Drive video URL
+   - Example: `https://drive.google.com/file/d/VIDEO_ID/view`
+2. Click the extension icon in your toolbar
+3. Click **ON** to enable URL capturing for the current tab
+4. The tab will reload automatically
+5. As the video loads, the popup will display:
+   - 📹 Video title
+   - ⬇️ Download button
+6. Click the download button to save the video locally
+
+#### **Video Modal (Folder Preview)**
+
+1. Open any Google Drive folder
+   - Example: `https://drive.google.com/drive/folders/FOLDER_ID`
+2. Click the extension icon in your toolbar
+3. Click **ON** to enable URL capturing for the current tab
+4. The tab will reload automatically
+5. Open the preview of a video by clicking on it
+6. As the video loads, the popup will display available videos
+7. Click the download button for the video you want
+   - 💡 Multiple videos may be listed as Google Drive loads multiple files for smooth transitions
+
+### 🧠 How the Extension Works
+
+#### **Interception Phase**
+- Uses Chrome Debugger API (`chrome.debugger`)
+- Listens for `Network.requestWillBeSent` and `Network.responseReceived` events
+- Detects requests to `workspacevideo-pa.clients6.google.com`
+- Parses JSON responses for `progressiveTranscodes` URLs (direct MP4 links)
+- Extracts video titles and metadata
+
+#### **Pooling Phase**
+- Polls the background script for captured requests
+- Updates UI with new videos in real-time
+- Uses `chrome.downloads.download` API for file downloads
+- Persists state (enabled/disabled) per tab via `chrome.storage.local`
+
+### 🔐 Extension Permissions
+
+| Permission | Purpose | Usage |
+|-----------|---------|-------|
+| `debugger` | Network event monitoring | Intercepts video stream requests |
+| `activeTab` | Current tab detection | Detects and reloads Drive tabs |
+| `downloads` | File downloading | Programmatic video download |
+| `storage` | State persistence | Saves on/off toggle per tab |
+| `<all_urls>` | Universal access | Allows debugger attachment to any URL |
+
+### ⚖️ Extension Disclaimer
+
+<div align="center">
+
+**By definition**, a cloud-based video sharing/streaming platform always downloads and saves the video into your browser for you to watch.
+
+**This does not bypass Google Drive's security**. Google [states clearly](https://bughunters.google.com/learn/invalid-reports/google-products/5300109711245312/download-print-copy-protection-bypasses-in-drive) that this specific functionality is intended behavior and they will not try to block it in the foreseeable future.
+
+</div>
+
+### 📝 Extension Important Notes
+
+- 🔓 File access permission is needed for extension functionality
+- 📹 Only works on Google Drive's video preview modals or video pages
+- 🔄 May list multiple videos as Google Drive preloads them
+- 🌐 Works on all Chromium-based browsers (Chrome, Edge, Brave, etc.)
+
+---
 
 <div align="center">
 

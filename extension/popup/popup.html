@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GDrive Video Extension</title>
+        <link rel="stylesheet" href="popup.css" />
+    </head>
+    <body>
+        <div class="header hidden">
+            <div class="extension-info">
+                <img class="extension-icon" title="GDrive Video Extension" src="../assets/icon.svg" />
+                <div class="extension-title">
+                    <h1>GDrive Video Extension</h1>
+                    <h2>Private Video Downloader</h2>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="reload-button" title="Restart the extension">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-refresh-cw-icon lucide-refresh-cw"
+                    >
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                        <path d="M8 16H3v5" />
+                    </svg>
+                </button>
+                <button class="state-button button-on" id="button-on">ON</button>
+                <button class="state-button button-off" id="button-off" disabled>OFF</button>
+            </div>
+        </div>
+        <div id="only-in-drive-message" class="hidden">It works only in Google Drive to download private videos</div>
+        <div id="download-container" class="hidden"></div>
+        <div id="status-message" class="hidden"></div>
+    </body>
+    <footer>
+        <a class="github-link" href="https://github.com/juansilvadesign/gdrive-video" target="_blank">
+            <svg height="22" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    clip-rule="evenodd"
+                    d="M16.003,0C7.17,0,0.008,7.162,0.008,15.997  c0,7.067,4.582,13.063,10.94,15.179c0.8,0.146,1.052-0.328,1.052-0.752c0-0.38,0.008-1.442,0-2.777  c-4.449,0.967-5.371-2.107-5.371-2.107c-0.727-1.848-1.775-2.34-1.775-2.34c-1.452-0.992,0.109-0.973,0.109-0.973  c1.605,0.113,2.451,1.649,2.451,1.649c1.427,2.443,3.743,1.737,4.654,1.329c0.146-1.034,0.56-1.739,1.017-2.139  c-3.552-0.404-7.286-1.776-7.286-7.906c0-1.747,0.623-3.174,1.646-4.292C7.28,10.464,6.73,8.837,7.602,6.634  c0,0,1.343-0.43,4.398,1.641c1.276-0.355,2.645-0.532,4.005-0.538c1.359,0.006,2.727,0.183,4.005,0.538  c3.055-2.07,4.396-1.641,4.396-1.641c0.872,2.203,0.323,3.83,0.159,4.234c1.023,1.118,1.644,2.545,1.644,4.292  c0,6.146-3.74,7.498-7.304,7.893C19.479,23.548,20,24.508,20,26c0,2,0,3.902,0,4.428c0,0.428,0.258,0.901,1.07,0.746  C27.422,29.055,32,23.062,32,15.997C32,7.162,24.838,0,16.003,0z"
+                    fill="currentColor"
+                    fill-rule="evenodd"
+                />
+            </svg>
+            GitHub
+        </a>
+    </footer>
+
+    <script src="popup.js"></script>
+</html>
