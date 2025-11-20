@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  streamlit:
+    build: .
+    container_name: gdrive-video-app
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+    volumes:
+      - .:/app
+    restart: unless-stopped
