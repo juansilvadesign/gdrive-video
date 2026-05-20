@@ -78,7 +78,7 @@
 
 ### Installation Steps
 
-> **💡 Tip**: Using a virtual environment is highly recommended to avoid dependency conflicts!
+> **Virtual environment required**: `run.bat` only uses the local `.env` environment and never falls back to system Python packages.
 
 #### 1️⃣ Clone the Repository
 ```powershell
@@ -87,36 +87,28 @@ cd gdrive-video
 ```
 
 
-#### 2️⃣ Set Up Virtual Environment (Recommended)
+#### 2️⃣ Set Up Virtual Environment
 ```powershell
-# Install virtualenv if you haven't already
-pip install virtualenv
-
 # Create virtual environment
-virtualenv .env
-
-# Activate virtual environment
-.env\Scripts\activate
+py -m venv .env
 ```
 
 #### 3️⃣ Install Dependencies
 ```powershell
-pip install -r requirements.txt
+.env\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
 #### 4️⃣ Launch Application
 ```powershell
-python main.py
+run.bat
 ```
 
-#### 5️⃣ Deactivate Environment (When Done)
-```powershell
-deactivate
-```
+#### 5️⃣ Done
+No activation or deactivation is required when using `run.bat`.
 
 ### 🎯 One-Line Installation
 ```powershell
-git clone https://github.com/juansilvadesign/gdrive-video.git && cd gdrive-video && pip install -r requirements.txt && python main.py
+git clone https://github.com/juansilvadesign/gdrive-video.git && cd gdrive-video && py -m venv .env && .env\Scripts\python.exe -m pip install -r requirements.txt && run.bat
 ```
 
 ## 📦 Dependencies
@@ -156,7 +148,7 @@ git clone https://github.com/juansilvadesign/gdrive-video.git && cd gdrive-video
 To download a video by its Google Drive ID:
 
 ```bash
-python main.py <video_id>
+run.bat <video_id>
 ```
 
 ### 📝 Getting the Video ID
@@ -178,20 +170,90 @@ The video ID is: `1BxBiUQN123abc456def789`
 
 ```bash
 # Basic download
-python main.py 1BxBiUQN123abc456def789
+run.bat 1BxBiUQN123abc456def789
 
 # Custom output filename
-python main.py 1BxBiUQN123abc456def789 -o "my_video.mp4"
+run.bat 1BxBiUQN123abc456def789 -o "my_video.mp4"
 
 # Larger chunk size for faster download
-python main.py 1BxBiUQN123abc456def789 -c 8192
+run.bat 1BxBiUQN123abc456def789 -c 8192
 
 # Verbose mode for debugging
-python main.py 1BxBiUQN123abc456def789 -v
+run.bat 1BxBiUQN123abc456def789 -v
 
 # Combined options
-python main.py 1BxBiUQN123abc456def789 -o "important_video.mp4" -c 4096 -v
+run.bat 1BxBiUQN123abc456def789 -o "important_video.mp4" -c 4096 -v
 ```
+
+### Private links shared with one Chrome profile
+
+The Python downloader does not run inside Chrome, so it cannot automatically "choose" a Chrome profile. For a Drive file that is only shared with one Google account, run the request with cookies exported from the Chrome profile that can open the link.
+
+1. Open the link in the Chrome profile that has access.
+2. Export cookies for Google/Drive from that profile in Netscape `cookies.txt` format. A raw `Cookie:` header saved to a text file also works.
+3. Run:
+
+```powershell
+run.bat "https://drive.google.com/file/d/VIDEO_ID/view" --cookies-file "C:\path\to\cookies.txt"
+```
+
+Or use the Windows helper:
+
+```powershell
+run_with_chrome_cookies.bat
+```
+
+If that Chrome profile is signed into multiple Google accounts, try `--account-index 1`, `--account-index 2`, and so on. This maps to the number in Drive URLs like `https://drive.google.com/u/1/...`.
+
+Keep exported cookie files private. They can act like a temporary login session, and this repo ignores common cookie filenames by default.
+
+### How to export `cookies.txt`
+
+Use the Chrome profile that can already open the Google Drive video. The profile matters more than the browser window: check the Chrome profile avatar in the top-right corner before exporting.
+
+#### Option 1: Export Netscape `cookies.txt`
+
+1. Open the Drive video link in the Chrome profile/account that has access.
+2. Install [Cookie-Editor](https://chromewebstore.google.com/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm?hl=en) from the Chrome Web Store.
+3. Open Cookie-Editor on the Drive tab and export cookies in **Netscape** format.
+4. Export cookies for `google.com` or `drive.google.com`. If the exporter gives a choice, prefer `google.com` so parent-domain Google session cookies are included.
+5. Save the file as something like `cookies.txt` or `my-drive.cookies.txt`.
+6. Run:
+
+```powershell
+run.bat "https://drive.google.com/file/d/VIDEO_ID/view" --cookies-file ".\cookies.txt"
+```
+
+#### Option 2: Save a raw `Cookie:` header
+
+If you do not want to use a cookie export extension, Chrome DevTools can provide the request cookie header.
+
+1. Open the Drive video link in the Chrome profile/account that has access.
+2. Press `F12` to open DevTools.
+3. Go to the **Network** tab.
+4. Refresh the Drive page.
+5. Select a `drive.google.com` request, preferably one containing `get_video_info`.
+6. In **Headers** > **Request Headers**, copy the full `Cookie:` header value.
+7. Paste it into a text file, for example `cookie_header.txt`.
+8. Run:
+
+```powershell
+run.bat "https://drive.google.com/file/d/VIDEO_ID/view" --cookies-file ".\cookie_header.txt"
+```
+
+The text file may contain either the whole line:
+
+```text
+Cookie: SID=...; HSID=...; SSID=...
+```
+
+or just the cookie pairs:
+
+```text
+SID=...; HSID=...; SSID=...
+```
+
+Cookie files expire. If a previously working file stops working, open the video in Chrome again and export a fresh file.
 
 ## 🗺️ Roadmap
 

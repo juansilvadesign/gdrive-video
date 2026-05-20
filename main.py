@@ -1,11 +1,35 @@
 from urllib.parse import unquote, urlparse
-import requests
 import argparse
 import sys
-from tqdm import tqdm
 import os
 import re
 import mimetypes
+from http.cookiejar import MozillaCookieJar
+
+def ensure_project_virtualenv() -> None:
+    """Prevents accidentally running with system Python packages."""
+    if os.name != "nt":
+        return
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    expected_python = os.path.normcase(os.path.abspath(
+        os.path.join(script_dir, ".env", "Scripts", "python.exe")
+    ))
+    actual_python = os.path.normcase(os.path.abspath(sys.executable))
+
+    if actual_python != expected_python:
+        print("ERROR: This project must run from its local virtual environment.")
+        print(f"Expected Python: {expected_python}")
+        print(f"Current Python:  {actual_python}")
+        print()
+        print("Use run.bat, or run:")
+        print(r"  .env\Scripts\python.exe main.py")
+        sys.exit(1)
+
+ensure_project_virtualenv()
+
+import requests
+from tqdm import tqdm
 
 def extract_video_id(url_or_id: str) -> str:
     """Extracts video ID from Google Drive URL or returns the ID if already provided."""
@@ -76,8 +100,63 @@ def get_file_extension(url: str, content_type: str = None) -> str:
     # Default to .mp4 if we can't determine the extension
     return '.mp4'
 
-def download_file(url: str, cookies: dict, filename: str, chunk_size: int, verbose: bool) -> None:
-    """Downloads the file from the given URL with provided cookies, supports resuming."""
+def load_cookie_file(session: requests.Session, cookie_file: str, verbose: bool) -> None:
+    """Loads cookies from a Netscape cookies.txt file or a raw Cookie header file."""
+    cookie_file = os.path.abspath(os.path.expandvars(os.path.expanduser(cookie_file)))
+    if not os.path.exists(cookie_file):
+        raise FileNotFoundError(f"Cookie file not found: {cookie_file}")
+
+    with open(cookie_file, "r", encoding="utf-8-sig") as file:
+        cookie_text = file.read().strip()
+
+    if not cookie_text:
+        raise ValueError(f"Cookie file is empty: {cookie_file}")
+
+    loaded_count = 0
+
+    if cookie_text.startswith("# Netscape") or "\t" in cookie_text:
+        cookie_jar = MozillaCookieJar(cookie_file)
+        cookie_jar.load(ignore_discard=True, ignore_expires=True)
+        for cookie in cookie_jar:
+            session.cookies.set_cookie(cookie)
+            loaded_count += 1
+    else:
+        cookie_header = cookie_text
+        if cookie_header.lower().startswith("cookie:"):
+            cookie_header = cookie_header.split(":", 1)[1].strip()
+
+        for cookie_pair in cookie_header.split(";"):
+            cookie_pair = cookie_pair.strip()
+            if not cookie_pair or "=" not in cookie_pair:
+                continue
+            name, value = cookie_pair.split("=", 1)
+            session.cookies.set(name.strip(), value.strip())
+            loaded_count += 1
+
+    if loaded_count == 0:
+        raise ValueError("No cookies were loaded. Use Netscape cookies.txt format or a raw Cookie header.")
+
+    if verbose:
+        print(f"[INFO] Loaded {loaded_count} cookies from {cookie_file}")
+
+def create_http_session(cookie_file: str = None, verbose: bool = False) -> requests.Session:
+    """Creates an HTTP session and optionally attaches exported browser cookies."""
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
+    })
+
+    if cookie_file:
+        load_cookie_file(session, cookie_file, verbose)
+
+    return session
+
+def download_file(url: str, session: requests.Session, filename: str, chunk_size: int, verbose: bool) -> None:
+    """Downloads the file from the given URL with session cookies, supports resuming."""
     try:
         headers = {}
         
@@ -85,7 +164,7 @@ def download_file(url: str, cookies: dict, filename: str, chunk_size: int, verbo
         if verbose:
             print("[INFO] Checking file information...")
             
-        head_response = requests.head(url, cookies=cookies, timeout=30)
+        head_response = session.head(url, timeout=30, allow_redirects=True)
         content_type = head_response.headers.get('content-type')
         
         # Add file extension if not present
@@ -112,7 +191,7 @@ def download_file(url: str, cookies: dict, filename: str, chunk_size: int, verbo
                 print(f"[INFO] Resuming download from byte {downloaded_size:,}")
 
         print("⬇️  Initiating download...")
-        response = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=30)
+        response = session.get(url, stream=True, headers=headers, timeout=30)
         
         if response.status_code in (200, 206):  # 200 for new downloads, 206 for partial content
             total_size = int(response.headers.get('content-length', 0)) + downloaded_size
@@ -227,9 +306,20 @@ def interactive_mode() -> tuple[str, str, int, bool]:
     
     return video_id, output_file, chunk_size, verbose
 
-def main(video_id: str = None, output_file: str = None, chunk_size: int = 8192, verbose: bool = False) -> None:
+def main(
+    video_id: str = None,
+    output_file: str = None,
+    chunk_size: int = 8192,
+    verbose: bool = False,
+    cookie_file: str = None,
+    account_index: int = 0,
+) -> None:
     """Main function to process video ID and download the video file."""
     try:
+        if account_index < 0:
+            print("Google account index must be 0 or greater.")
+            return
+
         # If no video_id provided, enter interactive mode
         if not video_id:
             video_id, output_file, chunk_size, verbose = interactive_mode()
@@ -243,20 +333,20 @@ def main(video_id: str = None, output_file: str = None, chunk_size: int = 8192, 
                 print("Please check your URL or ID and try again.")
                 return
         
-        drive_url = f'https://drive.google.com/u/0/get_video_info?docid={video_id}&drive_originator_app=303'
+        session = create_http_session(cookie_file, verbose)
+        drive_url = f'https://drive.google.com/u/{account_index}/get_video_info?docid={video_id}&drive_originator_app=303'
         
         if verbose:
             print(f"[INFO] Accessing {drive_url}")
 
         print("🔍 Retrieving video information...")
-        response = requests.get(drive_url)
+        response = session.get(drive_url, timeout=30)
         
         if response.status_code != 200:
             print(f"❌ Failed to access Google Drive. Status code: {response.status_code}")
             return
             
         page_content = response.text
-        cookies = response.cookies.get_dict()
 
         video, title = get_video_url(page_content, verbose)
 
@@ -267,6 +357,10 @@ def main(video_id: str = None, output_file: str = None, chunk_size: int = 8192, 
             print("  • Video is private or restricted")
             print("  • Video has been deleted")
             print("  • Network connectivity issues")
+            if cookie_file:
+                print("Cookie file is expired or from the wrong Chrome profile/account.")
+            else:
+                print("Private/shared videos need --cookies-file from the Chrome profile that can view them.")
             return
 
         filename = output_file if output_file else title
@@ -279,7 +373,7 @@ def main(video_id: str = None, output_file: str = None, chunk_size: int = 8192, 
         print(f"💾 Downloading as: {filename}")
         print()
         
-        download_file(video, cookies, filename, chunk_size, verbose)
+        download_file(video, session, filename, chunk_size, verbose)
         
     except KeyboardInterrupt:
         print("\n")
@@ -330,6 +424,17 @@ For more information, visit: https://github.com/juansilvadesign/gdrive-video
         help="Enable verbose mode for detailed logging"
     )
     parser.add_argument(
+        "--cookies-file",
+        type=str,
+        help="Path to a Netscape cookies.txt file or raw Cookie header exported from the Chrome profile that can view the video"
+    )
+    parser.add_argument(
+        "--account-index",
+        type=int,
+        default=0,
+        help="Google account index for drive.google.com/u/<index>/ URLs (default: 0)"
+    )
+    parser.add_argument(
         "--version", 
         action="version", 
         version="%(prog)s 2.0 - Enhanced with URL support and interactive mode"
@@ -342,7 +447,7 @@ For more information, visit: https://github.com/juansilvadesign/gdrive-video
         print()
     
     try:
-        main(args.video_id, args.output, args.chunk_size, args.verbose)
+        main(args.video_id, args.output, args.chunk_size, args.verbose, args.cookies_file, args.account_index)
     except KeyboardInterrupt:
         print("\n👋 Goodbye!")
     
