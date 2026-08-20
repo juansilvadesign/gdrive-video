@@ -1,4 +1,4 @@
 -r requirements.txt
 
 # Legacy distribution surface; it does not inherit Milestone D's transfer safety.
-streamlit>=1.40,<2
+streamlit>=1.61.1,<2
