@@ -154,16 +154,16 @@ st.markdown("""
         📥 GDrive Video
     </h1>
     <p style='text-align: center; color: #666; font-size: 1.2rem; margin-bottom: 2rem;'>
-        Download videos from Google Drive, even view-only files!
+        Download a video you already have permission to access and save.
     </p>
 """, unsafe_allow_html=True)
 
 # Feature highlights
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.metric("🔓", "View-Only Access", "Bypass Restrictions")
+    st.metric("✅", "Authorized Use", "Your Access")
 with col2:
-    st.metric("🔄", "Resume Downloads", "Continue Interrupted")
+    st.metric("⌨️", "Safe Resume", "CLI Only")
 with col3:
     st.metric("⚡", "Fast & Efficient", "Optimized Speed")
 with col4:
@@ -171,6 +171,13 @@ with col4:
 
 # Main content area
 st.divider()
+
+st.warning("""
+**Legacy preview/install surface:** this page buffers a download in server memory
+and does not use the Milestone D integrity/resume core. Use the local CLI for
+private, large, interrupted, or integrity-sensitive transfers. Never upload a
+cookie export to a hosted Streamlit instance.
+""")
 
 # Live Tester Section
 st.markdown("### 🎯 Test It Live")
@@ -210,7 +217,7 @@ if test_button and video_input:
                             
                             Possible reasons:
                             - Video ID is incorrect
-                            - Video is private or restricted
+                            - The file is not accessible to this public legacy tester
                             - Video has been deleted
                             - Network connectivity issues
                         """)
@@ -326,15 +333,15 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("""
-    **🔓 Access Control Bypass**
-    - Download view-only videos
-    - Bypass Google Drive restrictions
-    - Access protected content
+    **✅ Authorized Use**
+    - Files you own or have permission to save
+    - Existing Google Drive access only
+    - No access-control or legal-rights determination
     
-    **🔄 Smart Downloads**
-    - Resumable downloads
-    - Real-time progress tracking
-    - Custom chunk sizes
+    **🔄 Safe CLI Transfers**
+    - Verified resume and atomic final files
+    - Credential-safe status output
+    - The CLI, not this page, provides these guarantees
     """)
 
 with col2:
