@@ -3,11 +3,12 @@
 The living implementation checklist. Strategy, release boundaries, and the fixed
 frame live in **[`ROADMAP.md`](ROADMAP.md)**.
 
-_Last reviewed: 2026-08-05_
+_Last reviewed: 2026-08-20_
 
-> Milestones **A–C** are shipped. **D is the only execution-ready milestone.**
-> Items under E–G are deliberately coarse and must be re-planned after the
-> preceding retrospective.
+> Milestones **A–C** are shipped. **D's automated implementation is locally
+> green and remains in progress** until cross-platform CI and the maintainer-owned
+> Drive release matrix are green. Items under E–G are deliberately coarse and
+> must be re-planned after the preceding retrospective.
 
 ---
 
@@ -21,155 +22,155 @@ URL, or authorization detail leaks or crosses an unverified host.
 
 ### 0. Start the fixed frame safely
 
-- [ ] Record the implementation kickoff date and resulting eight-week end date in
+- [x] Record the implementation kickoff date and resulting eight-week end date in
       [`ROADMAP.md`](ROADMAP.md#fixed-frame); keep the 40-day total and D's 14-day
       ceiling fixed.
-- [ ] Capture a clean git baseline and record the starting commit in D's release
+- [x] Capture a clean git baseline and record the starting commit in D's release
       notes. Preserve unrelated work if the tree is not clean.
-- [ ] Inventory tracked/ignored secret-like files and repository history without
+- [x] Inventory tracked/ignored secret-like files and repository history without
       printing values. Classify `.streamlit/secrets.toml`; remove it if unused,
       replace it with a non-secret example if needed, and rotate/revoke anything
       that is actually sensitive before feature work continues.
 - [ ] Create maintainer-owned Drive fixtures with known bytes/hash: one public
       video, one private video shared to a test account, one still-processing/non-
       video case where practical, and no third-party copyrighted content.
-- [ ] Create sanitized metadata fixtures and synthetic cookies/signed URLs that
+- [x] Create sanitized metadata fixtures and synthetic cookies/signed URLs that
       preserve parser shape but contain no usable credential.
-- [ ] Record current behavior for fresh, interrupted, ignored-Range, missing-length,
+- [x] Record current behavior for fresh, interrupted, ignored-Range, missing-length,
       changed-file, `416`, timeout, bad-cookie, and disk-full simulations.
 
 ### 1. Lock authorization, transfer, and status contracts
 
-- [ ] Replace “bypass/protected/any video” product language with a precise contract:
+- [x] Replace “bypass/protected/any video” product language with a precise contract:
       the user must already be able and authorized to access/save the file.
-- [ ] Define accepted Drive URL/ID forms and reject ambiguous text instead of
+- [x] Define accepted Drive URL/ID forms and reject ambiguous text instead of
       extracting an arbitrary ID-like substring.
-- [ ] Define a media identity using stable non-secret fields such as file ID plus
+- [x] Define a media identity using stable non-secret fields such as file ID plus
       validated size/ETag/Last-Modified/content identity when available.
-- [ ] Define `.part`, resume sidecar, final-file, overwrite/conflict, stale-part,
+- [x] Define `.part`, resume sidecar, final-file, overwrite/conflict, stale-part,
       and cleanup behavior before changing filesystem code.
-- [ ] Define retryable versus terminal failures and stable outcomes/CLI exit codes
+- [x] Define retryable versus terminal failures and stable outcomes/CLI exit codes
       for invalid input, authentication, authorization, processing, non-video,
       expired playback URL, throttling, network, disk, conflict, cancellation, and
       integrity errors.
-- [ ] Define separate connect/read timeouts, bounded retries/backoff, and
+- [x] Define separate connect/read timeouts, bounded retries/backoff, and
       `Retry-After` behavior; an active large transfer must not use one ambiguous
       30-second timeout policy.
-- [ ] Define what completion proves: accepted media response, expected range,
+- [x] Define what completion proves: accepted media response, expected range,
       expected byte count when known, optional digest, flushed/closed file, and
       atomic final promotion.
 
 ### 2. Extract one tested download core
 
-- [ ] Split pure Drive ID parsing, cookie parsing/scoping, redaction, metadata
+- [x] Split pure Drive ID parsing, cookie parsing/scoping, redaction, metadata
       discovery, response validation, filename planning, resume state, and transfer
       decisions from prompts/progress rendering.
-- [ ] Make `main.py` a thin CLI adapter around typed/documented request, progress,
+- [x] Make `main.py` a thin CLI adapter around typed/documented request, progress,
       and result objects; no deep helper should print directly.
-- [ ] Centralize URL/host validation and secret redaction so verbose, errors, tests,
+- [x] Centralize URL/host validation and secret redaction so verbose, errors, tests,
       and future Streamlit/extension adapters cannot bypass them.
-- [ ] Parse Drive metadata with structured query/form parsing and bounded decoding,
+- [x] Parse Drive metadata with structured query/form parsing and bounded decoding,
       not `split("&")`/`split("=")[-1]` heuristics.
-- [ ] Preserve signed playback URLs only in short-lived memory needed for transfer;
+- [x] Preserve signed playback URLs only in short-lived memory needed for transfer;
       never place them in resume metadata or exception text.
-- [ ] Validate title/filename separately from media identity and provide a safe
+- [x] Validate title/filename separately from media identity and provide a safe
       non-empty fallback based on the Drive file ID.
-- [ ] Close responses/sessions deterministically on success, failure, cancellation,
+- [x] Close responses/sessions deterministically on success, failure, cancellation,
       and retry.
 
 ### 3. Contain cookies and signed URLs
 
-- [ ] Prefer cookie formats that retain domain/path/secure/expiry metadata. Decide
+- [x] Prefer cookie formats that retain domain/path/secure/expiry metadata. Decide
       whether raw `Cookie:` files can be made acceptably scoped; otherwise
       deprecate/reject them with a migration message.
-- [ ] Do not load expired cookies by default. Report expired/missing/empty/malformed
+- [x] Do not load expired cookies by default. Report expired/missing/empty/malformed
       jars without naming cookie values.
-- [ ] Validate cookie-file type, ownership/permissions where the OS exposes them,
+- [x] Validate cookie-file type, ownership/permissions where the OS exposes them,
       symlink/size boundaries, and regular-file status before reading.
-- [ ] Attach only the minimum cookies to the exact Google hosts that require them;
+- [x] Attach only the minimum cookies to the exact Google hosts that require them;
       never create domainless cookies that ride every request in the session.
 - [ ] Characterize which metadata/media requests actually require cookies using
       owned fixtures, then strip them from all other hosts.
-- [ ] Revalidate every redirect hop for HTTPS and the measured Drive/media host
+- [x] Revalidate every redirect hop for HTTPS and the measured Drive/media host
       allowlist; refuse downgrades, credential-bearing URLs, userinfo, unknown
       hosts, and excessive redirect chains.
-- [ ] Redact signed query values, cookie paths, account/session hints, headers, and
+- [x] Redact signed query values, cookie paths, account/session hints, headers, and
       response snippets from normal/verbose logs and exceptions.
-- [ ] Add a startup warning that exported cookies are temporary login credentials,
+- [x] Add a startup warning that exported cookies are temporary login credentials,
       plus actionable deletion/expiry guidance that never deletes user files
       automatically.
-- [ ] Ensure synthetic credentials used in tests are unmistakably nonfunctional and
+- [x] Ensure synthetic credentials used in tests are unmistakably nonfunctional and
       add a repository/CI secret scan before release.
 
 ### 4. Make resume and finalization correct
 
-- [ ] Validate `chunk_size` as a bounded positive integer before any request or
+- [x] Validate `chunk_size` as a bounded positive integer before any request or
       filesystem mutation.
-- [ ] Resolve output safely across reserved names, control characters, trailing
+- [x] Resolve output safely across reserved names, control characters, trailing
       dots/spaces, empty sanitized titles, explicit directories, collisions,
       symlinks, and existing final/partial files.
-- [ ] Download only to `<name>.part` and store a non-secret sidecar with source ID,
+- [x] Download only to `<name>.part` and store a non-secret sidecar with source ID,
       expected total/validators, completed bytes, and schema version.
-- [ ] For a resume, send `Range` plus `If-Range` when a valid validator exists and
+- [x] For a resume, send `Range` plus `If-Range` when a valid validator exists and
       append only after a `206` whose `Content-Range` starts at the local byte count
       and whose total/validator matches the sidecar.
-- [ ] If the server returns `200` to a Range request, never append. Choose and
+- [x] If the server returns `200` to a Range request, never append. Choose and
       document a safe restart/new-file action without losing the old partial
       silently.
-- [ ] For `416`, parse and compare the remote total with local bytes/identity before
+- [x] For `416`, parse and compare the remote total with local bytes/identity before
       declaring complete; otherwise mark the partial stale or corrupt.
-- [ ] When length is unknown, stream until clean EOF and finish without inventing a
+- [x] When length is unknown, stream until clean EOF and finish without inventing a
       total; preserve an indeterminate progress state.
-- [ ] Reject login/error HTML, JSON error bodies, implausible content types, empty
+- [x] Reject login/error HTML, JSON error bodies, implausible content types, empty
       bodies, and unexpected content encodings before promoting a file as video.
-- [ ] Handle signed-URL expiry during transfer by rediscovering metadata and
+- [x] Handle signed-URL expiry during transfer by rediscovering metadata and
       resuming only if media identity still matches.
-- [ ] Flush, optionally `fsync` according to the chosen durability contract, close,
+- [x] Flush, optionally `fsync` according to the chosen durability contract, close,
       verify known size/digest, then atomically rename `.part` to the conflict-safe
       final path.
-- [ ] On Ctrl+C, timeout, retry exhaustion, or disk error, preserve a consistent
+- [x] On Ctrl+C, timeout, retry exhaustion, or disk error, preserve a consistent
       partial/sidecar and print one redacted recovery command/status.
 
 ### 5. Build the HTTP fault and filesystem regression matrix
 
-- [ ] Add a local test server that can emit fresh `200`, correct/malformed `206`,
+- [x] Add a local test server that can emit fresh `200`, correct/malformed `206`,
       ignored Range `200`, valid/invalid `416`, known/unknown length, changed ETag,
       redirects, partial disconnects, stalls, 403/404/429/5xx, and HTML errors.
-- [ ] Prove fresh and every valid resume path produce byte-for-byte/hash-identical
+- [x] Prove fresh and every valid resume path produce byte-for-byte/hash-identical
       output to the fixture source.
-- [ ] Prove ignored Range, wrong start/total, changed validators/content, invalid
+- [x] Prove ignored Range, wrong start/total, changed validators/content, invalid
       `416`, and unexpected hosts never append or promote.
-- [ ] Prove unknown-length transfers stream to EOF rather than report an empty file
+- [x] Prove unknown-length transfers stream to EOF rather than report an empty file
       complete.
-- [ ] Test transient retry/backoff and `Retry-After` deterministically without real
+- [x] Test transient retry/backoff and `Retry-After` deterministically without real
       sleeps or external network.
-- [ ] Test connect/read timeouts, cancellation, permission denied, disk full/write
+- [x] Test connect/read timeouts, cancellation, permission denied, disk full/write
       failure, atomic-rename failure, stale sidecar, symlink, collision, and
       existing-final behavior.
-- [ ] Test strict ID/URL parsing, encoded metadata delimiters, missing/multiple
+- [x] Test strict ID/URL parsing, encoded metadata delimiters, missing/multiple
       titles/streams, oversized metadata, and safe title fallback.
-- [ ] Test Netscape/raw-cookie decisions, expiry/domain/path/secure scoping,
+- [x] Test Netscape/raw-cookie decisions, expiry/domain/path/secure scoping,
       redirect stripping, and redaction across stdout, logs, exceptions, snapshots,
       sidecars, and CI artifacts.
-- [ ] Keep CI offline: sanitized fixtures and the local server cover behavior; live
+- [x] Keep CI offline: sanitized fixtures and the local server cover behavior; live
       Drive checks remain explicit manual release evidence.
 
 ### 6. Normalize repository and release hygiene
 
-- [ ] Convert `requirements.txt` from UTF-16 to a standard UTF-8 dependency format,
+- [x] Convert `requirements.txt` from UTF-16 to a standard UTF-8 dependency format,
       separate runtime/development requirements, and verify clean installation.
 - [ ] Determine the supported Python range from CI evidence and align README,
       Docker, devcontainer, type syntax, and dependency constraints.
-- [ ] Choose one virtual-environment name/workflow across `run.bat`,
+- [x] Choose one virtual-environment name/workflow across `run.bat`,
       `streamlit.bat`, docs, and contributor instructions; do not install on every
       ordinary launch.
-- [ ] Add formatter/lint/type checks proportionate to the codebase plus a test
+- [x] Add formatter/lint/type checks proportionate to the codebase plus a test
       command and CI workflow.
-- [ ] Run a current dependency/license/security audit and add valid automated
+- [x] Run a current dependency/license/security audit and add valid automated
       dependency update configuration.
-- [ ] Remove unsafe development defaults such as disabling XSRF protection; keep
+- [x] Remove unsafe development defaults such as disabling XSRF protection; keep
       local exceptions explicit and non-production.
-- [ ] Document that Streamlit/extension remain legacy surfaces until E/F and ensure
+- [x] Document that Streamlit/extension remain legacy surfaces until E/F and ensure
       D does not accidentally claim their safety contract.
 
 ### 7. Accept and release D
@@ -185,12 +186,12 @@ URL, or authorization detail leaks or crosses an unverified host.
 - [ ] Verify no usable credential, signed URL, private title, or response body is
       present in git status/history additions, test artifacts, logs, sidecars, or
       release notes.
-- [ ] Rewrite `README.md` around authorized use, real surface status, credential
+- [x] Rewrite `README.md` around authorized use, real surface status, credential
       handling, safe resume, recovery, limitations, and executable setup commands;
       remove unsupported time-bound/bypass guarantees.
-- [ ] Expand `CONTRIBUTING.md` with fixtures, secret hygiene, tests, and release
+- [x] Expand `CONTRIBUTING.md` with fixtures, secret hygiene, tests, and release
       evidence requirements.
-- [ ] Add `CHANGELOG.md` and record resume/partial-file, cookie format/scoping,
+- [x] Add `CHANGELOG.md` and record resume/partial-file, cookie format/scoping,
       logging, filename, error, and compatibility changes.
 - [ ] Bump/version the CLI only after automated and manual evidence is green.
 - [ ] Record the release commit/tag and evidence in [`ROADMAP.md`](ROADMAP.md), mark

@@ -12,7 +12,7 @@ cookies or signed media URLs.
 This file owns strategy, release boundaries, and status. The actionable checklist
 lives in **[`TASKS.md`](TASKS.md)**.
 
-_Last reviewed: 2026-08-05_
+_Last reviewed: 2026-08-20_
 
 ---
 
@@ -25,7 +25,7 @@ the README wish list:
 | Constraint | Fixed planning baseline |
 | --- | --- |
 | **Outcome** | An authorized user can identify a Google Drive video they can already view, transfer it without leaking session credentials, safely resume interruptions, and verify that the final file is complete and is the intended media. |
-| **Deadline** | End of the eighth calendar week after implementation kickoff. Record the kickoff and resulting end date before Milestone D starts; do not extend the eight-week window. |
+| **Deadline** | Implementation kickoff: **2026-08-20**. Fixed eight-week end date: **2026-10-15**. Do not extend the eight-week window. |
 | **Capacity budget** | One maintainer, at most **40 maintainer-days** across Milestones D–G. No paid infrastructure. |
 | **Scope** | Open. Milestone D is protected; later releases are re-cut, reordered, or deferred as evidence and capacity change. |
 
@@ -83,7 +83,7 @@ those capabilities.
 
 ## Milestones
 
-`✅ shipped` · `▶ next` · `⬜ later`
+`✅ shipped` · `▶ in progress` · `⬜ later`
 
 | | Benefit-delivering release | State | Capacity ceiling | Assumption retired |
 | --- | --- | --- | --- | --- |
@@ -121,10 +121,17 @@ keeps the benefit while narrowing the credential and transfer risks.
 
 ### D — Credential-safe, integrity-aware single download ▶
 
-**Value shipped:** an authorized user can start, interrupt, and resume one large
+**Release value:** an authorized user can start, interrupt, and resume one large
 video; the tool either atomically produces a verified final file or leaves an
 honest resumable partial with a specific recovery message. Cookies and signed URLs
 do not escape their necessary hosts or appear in output/logs.
+
+**Implementation checkpoint (2026-08-20):** the core, repository normalization,
+and local offline gate are complete on Linux/Python 3.12.3: 182 tests pass with
+90.37% branch coverage, and local lint, format, type, secret, dependency, license,
+packaging, and configuration checks are green. D is not shipped: the GitHub
+OS/Python matrix and maintainer-owned public/private Drive fixture matrix remain
+release gates. See [`docs/milestone-d-evidence.md`](docs/milestone-d-evidence.md).
 
 **Riskiest assumption:** users will rely on this tool for meaningful files once it
 can prove resume safety and explain access/processing/network/file failures.
