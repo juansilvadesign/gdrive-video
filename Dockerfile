@@ -3,18 +3,15 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements
-COPY requirements.txt .
+# Copy the explicitly separate legacy Streamlit requirements
+COPY requirements.txt requirements-streamlit.txt ./
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-streamlit.txt
 
 # Copy application files
-COPY streamlit.py .
+COPY streamlit.py ./
+COPY extension ./extension
 
 # Expose Streamlit port
 EXPOSE 8501
@@ -23,7 +20,7 @@ EXPOSE 8501
 RUN mkdir -p ~/.streamlit
 
 # Configure Streamlit
-RUN echo "[server]\nheadless = true\nport = 8501\nenableCORS = false\n" > ~/.streamlit/config.toml
+RUN echo "[server]\nheadless = true\nport = 8501\nenableCORS = true\nenableXsrfProtection = true\n" > ~/.streamlit/config.toml
 
 # Run Streamlit app
 CMD ["streamlit", "run", "streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]

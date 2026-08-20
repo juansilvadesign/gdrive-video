@@ -1,0 +1,10 @@
+-r requirements.txt
+
+pytest>=8.3,<10
+pytest-cov>=6,<8
+ruff>=0.12,<1
+mypy>=1.17,<2
+types-requests>=2.32.4,<3
+types-tqdm>=4.67,<5
+pip-audit>=2.9,<3
+pip-licenses>=5,<6

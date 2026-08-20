@@ -1,43 +1,23 @@
 @echo off
-REM GDrive Video - Streamlit App Launcher
-REM This script runs the Streamlit app locally
+setlocal enabledelayedexpansion
 
-echo.
-echo ====================================
-echo  GDrive Video - Streamlit App
-echo ====================================
-echo.
+REM Legacy local Streamlit launcher. It does not use Milestone D's safe core.
+set "SCRIPT_DIR=%~dp0"
+set "VENV_PYTHON=%SCRIPT_DIR%.venv\Scripts\python.exe"
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo Error: Python is not installed or not in PATH
-    echo Please install Python from https://www.python.org
+if not exist "!VENV_PYTHON!" (
+    echo ERROR: Virtual environment Python not found at .venv\Scripts\python.exe
+    echo.
+    echo Set it up once with:
+    echo   py -m venv .venv
+    echo   .venv\Scripts\python.exe -m pip install -r requirements-streamlit.txt
     pause
     exit /b 1
 )
 
-REM Check if virtual environment exists, if not create it
-if not exist ".venv" (
-    echo Creating virtual environment...
-    python -m venv .venv
-)
-
-REM Activate virtual environment
-call .venv\Scripts\activate.bat
-
-REM Install requirements if needed
-echo Installing dependencies...
-pip install -q -r requirements.txt
-
-REM Run Streamlit app
-echo.
-echo ====================================
-echo Launching Streamlit app...
-echo Opening http://localhost:8501
-echo ====================================
-echo.
-
-streamlit run streamlit.py --logger.level=error
-
+echo WARNING: This is a legacy local preview/install surface.
+echo Use run.bat for private, large, resumable, or integrity-sensitive transfers.
+"!VENV_PYTHON!" -m streamlit run "%SCRIPT_DIR%streamlit.py" --logger.level=error
+set "RUN_EXIT_CODE=!errorlevel!"
 pause
+exit /b !RUN_EXIT_CODE!

@@ -134,6 +134,12 @@ venv.bak/
 cookies*.txt
 *.cookies.txt
 cookie_header.txt
+.streamlit/secrets.toml
+.streamlit/secrets.toml.*
+!.streamlit/secrets.toml.example
+*.part
+*.part.json
+*.stale.*
 
 # Spyder project settings
 .spyderproject
