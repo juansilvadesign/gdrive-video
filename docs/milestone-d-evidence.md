@@ -132,8 +132,14 @@ non-secret content checks. The loosened assertion was re-validated with a known-
 run: with `files.py` writing `0o666`, it still fails on Linux, and under a simulated
 `nt` it correctly skips while the content assertions still execute.
 
-Windows CI is expected to go green on the next push but **is not yet proven** — the
-matrix has not been re-run since the fix. No D release commit or tag has been
+**The fix is now proven.** The matrix re-ran against `12d8528` as run
+`32540006739`: **13/13 green — all four Windows legs pass**, alongside every Linux
+and macOS leg and `quality-security`. The cross-platform CI release gate is
+therefore **closed**; the supported range Linux/macOS/Windows × CPython 3.10–3.13
+is now release evidence rather than a target.
+
+The remaining D gates are the maintainer-owned public/private Drive fixture matrix
+and the final credential-artifact inspection. No D release commit or tag has been
 created, and the project version has not been bumped.
 
 Note for the pending bump: the version has three independent sources —

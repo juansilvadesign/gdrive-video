@@ -129,11 +129,12 @@ do not escape their necessary hosts or appear in output/logs.
 **Implementation checkpoint (2026-08-21):** the core, repository normalization,
 and local offline gate are complete on Linux/Python 3.12.3: 186 tests pass with
 90.48% branch coverage, and local lint, format, type, secret, dependency, license,
-packaging, and configuration checks are green. The CI matrix has now run against
-`ce3ec67` and was 8/12: Linux and macOS green, all four Windows legs red on a
-POSIX-only file-mode assertion, since fixed but not yet re-run. D is not shipped:
-a green OS/Python matrix and the maintainer-owned public/private Drive fixture
-matrix remain release gates.
+packaging, and configuration checks are green. The CI matrix ran against `ce3ec67` at 8/12 —
+Linux and macOS green, all four Windows legs red on a POSIX-only file-mode
+assertion — and after the fix re-ran against `12d8528` at **13/13 green**, closing
+the cross-platform gate. D is not shipped: the maintainer-owned public/private
+Drive fixture matrix and the final credential-artifact inspection remain release
+gates.
 See [`docs/milestone-d-evidence.md`](docs/milestone-d-evidence.md).
 
 **Riskiest assumption:** users will rely on this tool for meaningful files once it
