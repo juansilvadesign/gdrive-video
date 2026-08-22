@@ -126,12 +126,15 @@ video; the tool either atomically produces a verified final file or leaves an
 honest resumable partial with a specific recovery message. Cookies and signed URLs
 do not escape their necessary hosts or appear in output/logs.
 
-**Implementation checkpoint (2026-08-20):** the core, repository normalization,
-and local offline gate are complete on Linux/Python 3.12.3: 182 tests pass with
-90.37% branch coverage, and local lint, format, type, secret, dependency, license,
-packaging, and configuration checks are green. D is not shipped: the GitHub
-OS/Python matrix and maintainer-owned public/private Drive fixture matrix remain
-release gates. See [`docs/milestone-d-evidence.md`](docs/milestone-d-evidence.md).
+**Implementation checkpoint (2026-08-21):** the core, repository normalization,
+and local offline gate are complete on Linux/Python 3.12.3: 186 tests pass with
+90.48% branch coverage, and local lint, format, type, secret, dependency, license,
+packaging, and configuration checks are green. The CI matrix has now run against
+`ce3ec67` and was 8/12: Linux and macOS green, all four Windows legs red on a
+POSIX-only file-mode assertion, since fixed but not yet re-run. D is not shipped:
+a green OS/Python matrix and the maintainer-owned public/private Drive fixture
+matrix remain release gates.
+See [`docs/milestone-d-evidence.md`](docs/milestone-d-evidence.md).
 
 **Riskiest assumption:** users will rely on this tool for meaningful files once it
 can prove resume safety and explain access/processing/network/file failures.

@@ -7,10 +7,12 @@ import pytest
 import requests
 from conftest import ETAG, LAST_MODIFIED, MEDIA_BYTES, SOURCE_ID
 
+from gdrive_video.errors import GDriveVideoError
 from gdrive_video.files import SIDECAR_SCHEMA, OutputPlan, ResumeState, write_resume_state
 from gdrive_video.models import DownloadRequest, FailureKind, RetryPolicy, Timeouts
 from gdrive_video.security import UrlPolicy
 from gdrive_video.service import DownloadService
+from gdrive_video.transfer import TransferClient
 
 
 def make_service(
@@ -213,6 +215,31 @@ def test_invalid_416_never_promotes(fault_server, tmp_path: Path) -> None:
     seed_partial(final, prefix)
     result = execute(fault_server, "/invalid416", request_for(final))
     assert result.kind is FailureKind.INTEGRITY
+    # Pin the reason: without this the promotion-size guard also yields INTEGRITY,
+    # so the 416 total check could be removed and this test would still pass.
+    assert "partial and sidecar" in result.message
+    assert_preserved(final, prefix)
+
+
+def test_completed_partial_must_match_expected_total_before_promotion(tmp_path: Path) -> None:
+    """The last guard before atomic promotion refuses a short partial on its own."""
+    final = tmp_path / "short.mp4"
+    prefix = MEDIA_BYTES[:512]
+    seed_partial(final, prefix)
+    plan = OutputPlan(final, Path(f"{final}.part"), Path(f"{final}.part.json"))
+    state = ResumeState(
+        schema_version=SIDECAR_SCHEMA,
+        source_id=SOURCE_ID,
+        expected_total=len(MEDIA_BYTES),
+        etag=ETAG,
+        last_modified=LAST_MODIFIED,
+        content_type="video/mp4",
+        expected_sha256=None,
+        completed_bytes=len(prefix),
+    )
+    client = TransferClient(requests.Session(), None)  # _complete never touches the http client
+    with pytest.raises(GDriveVideoError, match="did not match the expected remote total"):
+        client._complete(request_for(final), plan, state, None)
     assert_preserved(final, prefix)
 
 

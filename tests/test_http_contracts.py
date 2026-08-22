@@ -269,8 +269,29 @@ def test_if_range_prefers_strong_etag_then_last_modified() -> None:
             ),
             "Last-Modified",
         ),
+        (
+            response(
+                416,
+                **{
+                    "Content-Range": "bytes */99",
+                    "ETag": ETAG,
+                    "Last-Modified": LAST_MODIFIED,
+                },
+            ),
+            "partial and sidecar",
+        ),
     ],
 )
 def test_416_requires_complete_identity(item: requests.Response, message: str) -> None:
     with pytest.raises(GDriveVideoError, match=message):
         _validate_416(item, resume_state(completed_bytes=10), 10)
+
+
+def test_416_total_must_match_the_sidecar_not_only_the_partial() -> None:
+    """A 416 total that agrees with the local partial but not the recorded total is refused."""
+    item = response(
+        416,
+        **{"Content-Range": "bytes */10", "ETag": ETAG, "Last-Modified": LAST_MODIFIED},
+    )
+    with pytest.raises(GDriveVideoError, match="partial and sidecar"):
+        _validate_416(item, resume_state(expected_total=12, completed_bytes=10), 10)

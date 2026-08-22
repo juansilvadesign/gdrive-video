@@ -137,6 +137,13 @@ def test_redaction_removes_queries_headers_account_hints_and_registered_secrets(
     assert "<redacted>" in redacted
 
 
+def test_redaction_covers_bare_cookie_pairs_outside_a_header() -> None:
+    """A cookie pair with no `Cookie:` prefix is not reachable by the header rule."""
+    redacted = redact_text("replaying SID=UNUSABLE_SYNTHETIC after a stalled read")
+    assert "UNUSABLE_SYNTHETIC" not in redacted
+    assert "SID=<redacted>" in redacted
+
+
 def test_sanitize_url_never_keeps_query_or_fragment() -> None:
     safe = sanitize_url("https://drive.google.com/u/2/path?token=SECRET#fragment")
     assert safe == "https://drive.google.com/u/<redacted>/path?<redacted>"

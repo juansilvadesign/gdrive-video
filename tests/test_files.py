@@ -190,7 +190,8 @@ def test_sidecar_roundtrip_is_private_nonsecret_and_crash_lag_tolerant(tmp_path:
     loaded = load_resume_state(plan, SOURCE_ID)
     assert loaded is not None
     assert loaded.completed_bytes == 6
-    assert stat.S_IMODE(plan.sidecar.stat().st_mode) == 0o600
+    if os.name != "nt":  # Windows chmod cannot express POSIX group/other bits
+        assert stat.S_IMODE(plan.sidecar.stat().st_mode) == 0o600
     payload = plan.sidecar.read_text(encoding="utf-8")
     assert "http" not in payload
     assert "title" not in payload

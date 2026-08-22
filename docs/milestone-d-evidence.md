@@ -63,11 +63,12 @@ or response captures to this file.
 
 ## Automated evidence
 
-Local implementation gate recorded **2026-08-20** on Linux with CPython 3.12.3:
+Local implementation gate re-run and independently reproduced **2026-08-21** on
+Linux with CPython 3.12.3:
 
 | Check | Local result |
 | --- | --- |
-| `.venv/bin/python -m pytest --cov --cov-report=term-missing` | **182 passed**; 90.37% branch coverage; required 85% floor met. |
+| `.venv/bin/python -m pytest --cov --cov-report=term-missing` | **186 passed**; 90.48% branch coverage; required 85% floor met. |
 | `.venv/bin/ruff check .` and `.venv/bin/ruff format --check .` | Passed. |
 | `.venv/bin/mypy` | Passed with no issues. |
 | `.venv/bin/python scripts/secret_scan.py --history` | Passed against the worktree and reachable history; paths only are reported on failure. |
@@ -82,11 +83,62 @@ cookie/redaction cases, a loopback server with stalled/disconnected/malformed an
 status fault modes, and filesystem failure injection. It performs no live Google
 Drive requests.
 
+### Mutation probes (independent verification, 2026-08-21)
+
+A passing suite only proves the tests agree with the code, so each load-bearing
+guard was disabled at the source and the suite re-run. A guard whose removal keeps
+the suite green is unverified, regardless of line coverage.
+
+| Guard disabled | Before | After |
+| --- | --- | --- |
+| Resume requires `206` (legacy Range-ignored corruption) | 1 test failed | unchanged |
+| `416` ETag / Last-Modified identity | 1 test failed each | unchanged |
+| Empty-partial promotion refusal | 1 test failed | unchanged |
+| `416` remote-total vs partial and sidecar | **survived** | 3 tests fail |
+| Completed size vs expected remote total | **survived** | 1 test fails |
+| Bare cookie-pair redaction | **survived** | 1 test fails |
+
+The three survivors were each masked by a sibling guard rather than absent: the two
+integrity checks defend the same promotion boundary, and disabling *both* was caught,
+so no truncated file could be promoted at any point. `redact_text` was also called
+directly and redacted the header, bare-pair, inline and `Set-Cookie` forms with no
+leak. The gap was therefore test precision, not product behavior — most visibly
+`test_invalid_416_never_promotes`, which asserted only the failure kind and so passed
+for a different reason than its name claims. Four tests were added and each was
+confirmed to kill its mutant; `test_invalid_416_never_promotes` now pins the message.
+
+### Cross-platform CI
+
 The committed CI workflow targets Linux, Windows, and macOS on CPython 3.10–3.13
-(12 jobs), but that matrix has not run for this uncommitted implementation state.
-Consequently the range remains a CI target rather than release evidence. No D
-release commit or tag has been created, and the project version has not been
-bumped.
+(12 jobs plus a quality/security job). Contrary to the earlier note in this file,
+the implementation **is** committed and pushed (`ce3ec67`, matching `origin/main`),
+and the matrix **has** run against it — GitHub Actions run `32386323997`:
+
+- **8/12 green**: every Linux and every macOS leg, plus `quality-security`.
+- **4/12 red**: all four Windows legs, 3.10 through 3.13.
+
+All four Windows failures were the same single assertion in
+`tests/test_sidecar_roundtrip_is_private_nonsecret_and_crash_lag_tolerant`:
+`assert stat.S_IMODE(...) == 0o600` → `assert 438 == 384`. Windows `os.chmod` cannot
+express POSIX group/other bits, so the sidecar is created `0o666` there.
+
+This was a test-portability defect, not a product or credential defect: the same
+test asserts on the following lines that the sidecar contains no URL, title, or
+cookie, and those assertions pass on Windows; `cookies.py` only ever reads a jar and
+never writes one. The mode assertion is now POSIX-only, matching the pre-existing
+idiom at `tests/test_cookies.py:107`. It was deliberately scoped to the single
+assertion rather than skipping the whole test, so Windows still runs the
+non-secret content checks. The loosened assertion was re-validated with a known-bad
+run: with `files.py` writing `0o666`, it still fails on Linux, and under a simulated
+`nt` it correctly skips while the content assertions still execute.
+
+Windows CI is expected to go green on the next push but **is not yet proven** — the
+matrix has not been re-run since the fix. No D release commit or tag has been
+created, and the project version has not been bumped.
+
+Note for the pending bump: the version has three independent sources —
+`pyproject.toml` (`2.0.0`), `gdrive_video/__init__.py` (`2.0`), and a hardcoded
+`GDrive-Video/2.0` user agent in `cookies.py`. No test pins them together.
 
 ## Manual release evidence
 
